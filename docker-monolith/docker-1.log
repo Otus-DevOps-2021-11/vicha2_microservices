@@ -1,0 +1,6 @@
+REPOSITORY               TAG       IMAGE ID       CREATED          SIZE
+vicha2/ubuntu-tmp-file   latest    bcbdb581296c   55 seconds ago   63.2MB
+ubuntu                   18.04     dcf4d4bef137   2 days ago       63.2MB
+hello-world              latest    feb5d9fea6a5   4 months ago     13.3kB
+
+Image статичен, а контейнер запущен на основе image.
