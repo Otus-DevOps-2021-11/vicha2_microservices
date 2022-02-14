@@ -71,7 +71,7 @@ yc compute instance create \
 ```
 docker-machine create \
 --driver generic \
---generic-ip-address=84.201.158.149 \
+--generic-ip-address=<your public IP> \
 --generic-ssh-user yc-user \
 --generic-ssh-key ~/.ssh/id_rsa \
 docker-host
@@ -125,6 +125,124 @@ docker run -d --network=reddit --network-alias=post vicha2/post:1.0
 docker run -d --network=reddit --network-alias=comment vicha2/comment:1.0
 docker run -d --network=reddit -p 9292:9292 vicha2/ui:2.0
 ```
+- Удаление docker-machine
+```
+docker-machine rm docker-host -y
+eval $(docker-machine env -u)
+yc compute instance delete docker-host
+```
+</details>
+<details><summary>ДЗ№18 Сетевое взаимодействие Docker контейнеров. Docker Compose. Тестирование образов.</summary>
+
+- Создаем ВМ и подключаемся через docker-machime (см. предыдущее занятие)
+- None network driver
+```
+docker run -it --rm --network none joffotron/docker-net-tools -c ifconfig
+```
+- Host network driver
+```
+docker run -it --rm --network host joffotron/docker-net-tools -c ifconfig
+```
+> Сравните вывод команды с : docker-machine ssh docker-host ifconfig
+
+На docker-machine ip хостовой машины
+- Запуск несколько раз:
+```
+docker run --network host -d nginx
+```
+> Каков результат? Что выдал docker ps? Как думаете почему?
+
+Работать будет только первый контейнер, т.к. 80 порт на хостовой машине будет занят им.
+- Bridge network driver
+```
+docker network create reddit --driver bridge
+docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest
+docker run -d --network=reddit --network-alias=post vicha2/post:1.0
+docker run -d --network=reddit --network-alias=comment vicha2/comment:1.0
+docker run -d --network=reddit -p 9292:9292 vicha2/ui:1.0
+```
+## Docker compose
+```
+export USERNAME=vicha2
+docker-compose up -d
+docker-compose ps
+```
+```
+version: '3.3'
+services:
+  post_db:
+    image: mongo:3.2
+    volumes:
+      - post_db:/data/db
+    networks:
+      back_net:
+        aliases:
+          - comment_db
+          - post_db
+  ui:
+    build: ./ui
+    image: ${USERNAME}/ui:${TAG}
+    ports:
+      - ${UIPORT}:${UIPORT}/tcp
+    networks:
+      - front_net
+  post:
+    build: ./post-py
+    image: ${USERNAME}/post:${TAG}
+    networks:
+      back_net:
+        aliases:
+          - post
+      front_net:
+        aliases:
+          - post
+  comment:
+    build: ./comment
+    image: ${USERNAME}/comment:${TAG}
+    networks:
+      back_net:
+        aliases:
+          - comment
+      front_net:
+        aliases:
+          - comment
+
+volumes:
+  post_db:
+
+networks:
+  back_net:
+  front_net:
+
+```
+> Узнайте как образуется базовое имя проекта. Можно
+ли его задать? Если можно то как?
+
+Базовое имя образуется из имени папки с проектом src_******
+Изменить можно добавив параметр -p, --project-name NAME
+
+- Задание со *
+
+docker-compose.override.yml
+```
+version: '3.3'
+services:
+  ui:
+    command: puma --debug -w 2
+  comment:
+    command: puma --debug -w 2
+```
+```
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+```
+
+    Name                  Command             State                    Ports                  
+----------------------------------------------------------------------------------------------
+src_comment_1   puma --debug -w 2             Up                                              
+src_post_1      python3 post_app.py           Up                                              
+src_post_db_1   docker-entrypoint.sh mongod   Up      27017/tcp                               
+src_ui_1        puma --debug -w 2             Up      0.0.0.0:9292->9292/tcp,:::9292->9292/tcp
+
 - Удаление docker-machine
 ```
 docker-machine rm docker-host -y
