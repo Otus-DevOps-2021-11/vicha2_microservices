@@ -250,3 +250,41 @@ eval $(docker-machine env -u)
 yc compute instance delete docker-host
 ```
 </details>
+<details><summary>ДЗ№22 Введение в мониторинг. Модели и принципы работы систем мониторинга.</summary>
+
+- Создаем ВМ
+```
+yc compute instance create \
+  --name docker-host \
+  --zone ru-central1-a \
+  --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-1804-lts,size=15 \
+  --ssh-key ~/.ssh/id_rsa.pub
+```
+- Create Docker VM
+```
+docker-machine create \
+  --driver generic \
+  --generic-ip-address=<your Public IP> \
+  --generic-ssh-user yc-user \
+  --generic-ssh-key ~/.ssh/id_rsa \
+  docker-host
+eval $(docker-machine env docker-host)
+```
+- Запуск Prometheus
+```
+docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus
+```
+- Создаем образ
+```
+export USER_NAME=vicha2
+docker build -t $USER_NAME/prometheus .
+```
+- Docker HUB
+```
+https://hub.docker.com/repository/docker/vicha2/prometheus
+https://hub.docker.com/repository/docker/vicha2/post
+https://hub.docker.com/repository/docker/vicha2/comment
+https://hub.docker.com/repository/docker/vicha2/ui
+```
+</details>
