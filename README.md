@@ -288,3 +288,38 @@ https://hub.docker.com/repository/docker/vicha2/comment
 https://hub.docker.com/repository/docker/vicha2/ui
 ```
 </details>
+<details><summary>ДЗ№25 Применение системы логирования в инфраструктуре на основе Docker .</summary>
+
+- Создаем ВМ
+```
+yc compute instance create \
+  --name logging \
+  --zone ru-central1-a \
+  --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-1804-lts,size=15 \
+  --memory 4 \
+  --ssh-key ~/.ssh/id_rsa.pub
+```
+- Create Docker VM
+```
+docker-machine create \
+  --driver generic \
+  --generic-ip-address=62.84.125.172 \
+  --generic-ssh-user yc-user \
+  --generic-ssh-key ~/.ssh/id_rsa \
+  logging
+eval $(docker-machine env logging)
+```
+- Запускаем приложение
+```
+docker-compose up -d
+docker-compose -f docker-compose-logging.yml up -d
+```
+- Удаление docker-machine
+```
+docker-machine rm logging -y
+eval $(docker-machine env -u)
+yc compute instance delete logging
+```
+
+</details>
