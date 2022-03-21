@@ -17,6 +17,11 @@ services:
       - ZIPKIN_ENABLED=${ZIPKIN_ENABLED}
     ports:
       - ${UIPORT}:${UIPORT}/tcp
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
     networks:
       - front_net
   post:
