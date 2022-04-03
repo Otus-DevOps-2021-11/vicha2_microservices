@@ -407,3 +407,28 @@ kubectl get po
 yc compute instance delete master worker
 ```
 </details>
+
+<details><summary>ДЗ№28 Введение в Kubernetes #2.</summary>
+
+- Запускаем minikube в docker
+```
+minikube start --driver=docker --cpus=4 --memory=8g
+kubectl get nodes
+kubectl config current-context
+kubectl config get-contexts
+```
+- Пробрасываем порт и проверяем
+```
+kubectl apply -f ui-deployment.yml
+kubectl port-forward <pod-name>9292:9292
+```
+- Подключаемся к кластеру Yandex
+```
+yc managed-kubernetes cluster get-credentials test-cluster --external
+kubectl config current-context
+kubectl apply -f dev-namespace.yml
+kubectl -n dev apply -f .
+kubectl get nodes -o wide
+kubectl -n dev describe service ui
+```
+</details>
