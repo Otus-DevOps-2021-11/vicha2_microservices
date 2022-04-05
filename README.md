@@ -296,15 +296,15 @@ yc compute instance create \
   --name logging \
   --zone ru-central1-a \
   --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4 \
-  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-1804-lts,size=15 \
-  --memory 4 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-1804-lts,size=30 \
+  --memory 8 \
   --ssh-key ~/.ssh/id_rsa.pub
 ```
 - Create Docker VM
 ```
 docker-machine create \
   --driver generic \
-  --generic-ip-address=62.84.125.172 \
+  --generic-ip-address=51.250.73.131 \
   --generic-ssh-user yc-user \
   --generic-ssh-key ~/.ssh/id_rsa \
   logging
@@ -312,8 +312,8 @@ eval $(docker-machine env logging)
 ```
 - Запускаем приложение
 ```
-docker-compose up -d
 docker-compose -f docker-compose-logging.yml up -d
+docker-compose up -d
 ```
 - Удаление docker-machine
 ```
