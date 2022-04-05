@@ -315,9 +315,6 @@ eval $(docker-machine env logging)
 docker-compose -f docker-compose-logging.yml up -d
 docker-compose up -d
 ```
-
-
-
 - Удаление docker-machine
 ```
 docker-machine rm logging -y
@@ -325,4 +322,88 @@ eval $(docker-machine env -u)
 yc compute instance delete logging
 ```
 
+</details>
+<details><summary>ДЗ№27 Введение в Kubernetes #1.</summary>
+
+- Создаем файлы манифестов deployment
+- Создаем две ноды:
+  - Master
+```
+yc compute instance create \
+  --name master \
+  --hostname master \
+  --zone ru-central1-a \
+  --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-2004-lts,size=40 \
+  --memory 4 \
+  --cores 4 \
+  --ssh-key ~/.ssh/id_rsa.pub
+```
+  - Worker
+```
+yc compute instance create \
+  --name worker \
+  --hostname worker \
+  --zone ru-central1-a \
+  --network-interface subnet-name=default-ru-central1-a,nat-ip-version=ipv4 \
+  --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-2004-lts,size=40 \
+  --memory 4 \
+  --cores 4 \
+  --ssh-key ~/.ssh/id_rsa.pub
+```
+- Подключаемся к master
+```
+ssh yc-user@51.250.73.153 #IP your master node
+```
+- Установка Docker
+```
+sudo apt-get remove docker docker-engine docker.io containerd runc
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+```
+- Установка kubeadm
+```
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+sudo apt install kubeadm=1.19.16-00 kubelet=1.19.16-00 kubectl=1.19.16-00
+```
+- Установка K8s control plane
+```
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+```
+- Запуск master
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+- Подключаемся к worker
+```
+ssh yc-user@51.250.67.16 #IP worker nodes
+```
+- Устанавливаем Docker и kubeadm по аналогии с master
+- Установка CNI Calico
+```
+curl https://projectcalico.docs.tigera.io/manifests/calico.yaml -O       #Edit CALICO_IPV4POOL_CIDR
+kubectl apply -f calico.yaml
+```
+- Проверка манифестов
+```
+kubectl apply -f vicha2_microservices/kubernetes/reddit/
+kubectl get po
+```
+- Удаляем ВМ
+```
+yc compute instance delete master worker
+```
 </details>
