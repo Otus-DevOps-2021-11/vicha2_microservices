@@ -489,8 +489,8 @@ yc compute disk create \
 --zone "ru-central1-a"
 
 yc compute disk list
-kubectl -n dev create -f pv.yml
-kubectl -n dev create -f pvc.yml
+kubectl -n dev create -f mongo-volume.yml
+kubectl -n dev create -f mongo-claim.yml
 ```
 - Удаляем кластер и диск
 ```
