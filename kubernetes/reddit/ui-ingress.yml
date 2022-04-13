@@ -1,0 +1,13 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ui
+  annotations:
+    kubernetes.io/ingress.allow-http: "false" # Отключаем проброс HTTP
+spec:
+  tls:
+  - secretName: ui-ingress # Подключаем наш сертификат
+  backend:
+    serviceName: ui
+    servicePort: 9292
